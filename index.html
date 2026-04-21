@@ -1,0 +1,2009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="RPG Toolbox">
+<meta name="theme-color" content="#c9a84c">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Solo RPG Toolbox</title>
+<style>
+  @font-face {
+    font-family: 'AppDisplay';
+    src: local('Georgia'), local('Times New Roman'), local('serif');
+    font-weight: 700;
+  }
+
+  :root {
+    --bg: #0f0e0d;
+    --surface: #1a1917;
+    --surface2: #242220;
+    --border: #3a3530;
+    --accent: #c9a84c;
+    --accent2: #e8c97a;
+    --text: #e8e0d0;
+    --text2: #9a9080;
+    --red: #e74c3c;
+    --radius: 12px;
+    --font-display: Georgia, 'Times New Roman', serif;
+    --font-body: 'Palatino Linotype', Palatino, Georgia, serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 18px;
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* NAV */
+  .nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex;
+    z-index: 100;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .nav-btn {
+    flex: 1;
+    padding: 14px 8px 10px;
+    background: none;
+    border: none;
+    color: var(--text2);
+    font-family: var(--font-display);
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    transition: color 0.2s;
+  }
+
+  .nav-btn .icon { font-size: 22px; }
+  .nav-btn.active { color: var(--accent); }
+
+  /* SCREENS */
+  .screen {
+    display: none;
+    padding: 20px 16px 90px;
+    min-height: 100vh;
+  }
+  .screen.active { display: block; }
+
+  .page-title {
+    font-family: var(--font-display);
+    font-size: 22px;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* DICE */
+  .dice-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .die-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: var(--font-display);
+    font-size: 13px;
+    padding: 14px 6px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.15s;
+    position: relative;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .die-btn .die-icon { font-size: 26px; }
+  .die-btn:active { transform: scale(0.94); }
+  .die-btn.selected {
+    border-color: var(--accent);
+    background: #2a2518;
+  }
+
+  .die-count {
+    position: absolute;
+    top: 6px; right: 8px;
+    background: var(--accent);
+    color: #000;
+    font-size: 11px;
+    font-family: var(--font-display);
+    font-weight: 700;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .dice-actions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .btn-primary {
+    flex: 1;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: var(--radius);
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-primary:active { transform: scale(0.97); opacity: 0.9; }
+
+  .btn-secondary {
+    background: var(--surface);
+    color: var(--text2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-family: var(--font-display);
+    font-size: 13px;
+    padding: 16px 18px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-secondary:active { opacity: 0.7; }
+
+  .results-area {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    min-height: 120px;
+  }
+
+  .results-label {
+    font-family: var(--font-display);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--text2);
+    margin-bottom: 12px;
+  }
+
+  .results-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .result-chip {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    animation: popIn 0.2s ease;
+  }
+
+  @keyframes popIn {
+    from { transform: scale(0.7); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .result-die-label {
+    font-size: 11px;
+    color: var(--text2);
+    font-family: var(--font-display);
+  }
+
+  .result-value {
+    font-family: var(--font-display);
+    font-size: 28px;
+    color: var(--accent2);
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .empty-state {
+    color: var(--text2);
+    font-style: italic;
+    text-align: center;
+    padding: 20px 0;
+    width: 100%;
+  }
+
+  /* TABLES */
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .section-title {
+    font-family: var(--font-display);
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    color: var(--text2);
+  }
+
+  .btn-small {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--accent);
+    font-family: var(--font-display);
+    font-size: 12px;
+    padding: 6px 12px;
+    cursor: pointer;
+  }
+
+  .folder-list { margin-bottom: 20px; }
+
+  .folder-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 8px;
+    overflow: hidden;
+  }
+
+  .folder-header {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    cursor: pointer;
+    gap: 10px;
+  }
+
+  .folder-icon { font-size: 18px; }
+
+  .folder-name {
+    flex: 1;
+    font-family: var(--font-display);
+    font-size: 14px;
+  }
+
+  .folder-toggle {
+    color: var(--text2);
+    font-size: 12px;
+    transition: transform 0.2s;
+  }
+
+  .folder-toggle.open { transform: rotate(90deg); }
+
+  .folder-contents {
+    display: none;
+    border-top: 1px solid var(--border);
+    padding: 8px;
+  }
+
+  .folder-contents.open { display: block; }
+
+  .table-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    border-radius: 8px;
+    gap: 10px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .table-item:active { background: var(--surface2); }
+
+  .table-name { flex: 1; font-size: 16px; }
+
+  .table-count {
+    font-size: 12px;
+    color: var(--text2);
+    font-family: var(--font-display);
+  }
+
+  .icon-btn {
+    background: none;
+    border: none;
+    color: var(--text2);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 4px;
+  }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 200;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  .modal-overlay.open {
+    display: flex;
+    animation: fadeIn 0.2s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px 20px 0 0;
+    width: 100%;
+    max-width: 600px;
+    padding: 24px 20px;
+    padding-bottom: calc(24px + env(safe-area-inset-bottom));
+    animation: slideUp 0.25s ease;
+    max-height: 88vh;
+    overflow-y: auto;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  .modal-title {
+    font-family: var(--font-display);
+    font-size: 18px;
+    color: var(--accent);
+    margin-bottom: 20px;
+  }
+
+  .form-group { margin-bottom: 16px; }
+
+  .form-label {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--text2);
+    margin-bottom: 6px;
+  }
+
+  .form-input, .form-select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 16px;
+    padding: 12px 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+
+  .form-input:focus, .form-select:focus { border-color: var(--accent); }
+
+  .form-textarea {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 15px;
+    padding: 12px 14px;
+    outline: none;
+    resize: vertical;
+    min-height: 160px;
+    transition: border-color 0.2s;
+  }
+
+  .form-textarea:focus { border-color: var(--accent); }
+
+  .form-hint {
+    font-size: 13px;
+    color: var(--text2);
+    font-style: italic;
+    margin-top: 4px;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .btn-cancel {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text2);
+    font-family: var(--font-display);
+    font-size: 14px;
+    padding: 14px;
+    cursor: pointer;
+  }
+
+  .btn-confirm {
+    flex: 2;
+    background: var(--accent);
+    border: none;
+    border-radius: var(--radius);
+    color: #000;
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 700;
+    padding: 14px;
+    cursor: pointer;
+  }
+
+  /* TABLE DETAIL */
+  .back-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: none;
+    color: var(--accent);
+    font-family: var(--font-display);
+    font-size: 13px;
+    cursor: pointer;
+    margin-bottom: 20px;
+    padding: 0;
+  }
+
+  .table-roll-result {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+    text-align: center;
+    min-height: 100px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .roll-result-text {
+    font-size: 22px;
+    color: var(--accent2);
+    line-height: 1.4;
+  }
+
+  .roll-result-chain {
+    font-size: 13px;
+    color: var(--text2);
+    font-style: italic;
+  }
+
+  .table-entries-list {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+
+  .entry-row {
+    display: flex;
+    align-items: center;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    gap: 10px;
+    font-size: 15px;
+  }
+
+  .entry-row:last-child { border-bottom: none; }
+
+  .entry-num {
+    font-family: var(--font-display);
+    font-size: 11px;
+    color: var(--text2);
+    min-width: 24px;
+  }
+
+  .entry-text { flex: 1; }
+
+  .entry-link {
+    font-size: 12px;
+    color: var(--accent);
+    font-family: var(--font-display);
+  }
+
+  .no-tables {
+    color: var(--text2);
+    font-style: italic;
+    font-size: 14px;
+    padding: 12px;
+    text-align: center;
+  }
+
+  .folder-delete-btn {
+    background: none;
+    border: none;
+    color: var(--text2);
+    font-size: 14px;
+    cursor: pointer;
+    padding: 4px 8px;
+  }
+
+  /* MAP */
+  .map-screen {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    bottom: calc(70px + env(safe-area-inset-bottom));
+    background: var(--bg);
+    flex-direction: column;
+    z-index: 50;
+  }
+  .map-screen.active { display: flex; }
+
+  .map-topbar {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    gap: 8px;
+    flex-shrink: 0;
+    padding-top: calc(10px + env(safe-area-inset-top));
+  }
+
+  .map-title {
+    flex: 1;
+    font-family: var(--font-display);
+    font-size: 15px;
+    color: var(--accent);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .map-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 12px;
+    font-family: var(--font-display);
+    padding: 6px 10px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .map-canvas-wrap {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    touch-action: none;
+  }
+
+  #map-canvas {
+    position: absolute;
+    top: 0; left: 0;
+    cursor: crosshair;
+  }
+
+  .map-toolbar {
+    display: flex;
+    align-items: center;
+    padding: 8px 6px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    gap: 4px;
+    flex-shrink: 0;
+    overflow-x: auto;
+  }
+
+  .tool-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text2);
+    font-size: 18px;
+    padding: 6px 8px;
+    cursor: pointer;
+    min-width: 44px;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+
+  .tool-btn span.tool-label {
+    font-size: 9px;
+    font-family: var(--font-display);
+    letter-spacing: 0.03em;
+  }
+
+  .tool-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: #2a2518;
+  }
+  .toast {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--surface2);
+    border: 1px solid var(--accent);
+    border-radius: 20px;
+    color: var(--accent);
+    font-family: var(--font-display);
+    font-size: 13px;
+    padding: 10px 20px;
+    opacity: 0;
+    transition: all 0.3s;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 300;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+</style>
+</head>
+<body>
+
+<!-- SCREEN: DICE -->
+<div class="screen active" id="screen-dice">
+  <div class="page-title">⚔ Dice Roller</div>
+  <div class="dice-grid">
+    <button class="die-btn" data-sides="4" onclick="selectDie(this)">
+      <span class="die-icon">🔷</span><span>d4</span>
+    </button>
+    <button class="die-btn" data-sides="6" onclick="selectDie(this)">
+      <span class="die-icon">🎲</span><span>d6</span>
+    </button>
+    <button class="die-btn" data-sides="8" onclick="selectDie(this)">
+      <span class="die-icon">🔸</span><span>d8</span>
+    </button>
+    <button class="die-btn" data-sides="10" onclick="selectDie(this)">
+      <span class="die-icon">🔟</span><span>d10</span>
+    </button>
+    <button class="die-btn" data-sides="12" onclick="selectDie(this)">
+      <span class="die-icon">🔺</span><span>d12</span>
+    </button>
+    <button class="die-btn" data-sides="20" onclick="selectDie(this)">
+      <span class="die-icon">⭐</span><span>d20</span>
+    </button>
+    <button class="die-btn" data-sides="100" onclick="selectDie(this)">
+      <span class="die-icon">💯</span><span>d100</span>
+    </button>
+  </div>
+  <div class="dice-actions">
+    <button class="btn-primary" onclick="rollDice()">ROLL</button>
+    <button class="btn-secondary" onclick="clearDice()">Clear</button>
+  </div>
+  <div class="results-area">
+    <div class="results-label">RESULTS</div>
+    <div class="results-list" id="results-list">
+      <div class="empty-state">Select dice above and tap Roll</div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN: TABLES -->
+<div class="screen" id="screen-tables">
+  <div class="page-title">📜 Tables</div>
+  <div class="section-header">
+    <span class="section-title">FOLDERS</span>
+    <button class="btn-small" onclick="openNewFolderModal()">+ Folder</button>
+  </div>
+  <div class="folder-list" id="folder-list"></div>
+  <button class="btn-primary" style="width:100%" onclick="openNewTableModal()">+ New Table</button>
+</div>
+
+<!-- SCREEN: TABLE DETAIL -->
+<div class="screen" id="screen-table-detail">
+  <button class="back-btn" onclick="showTablesList()">← Back</button>
+  <div class="page-title" id="detail-title"></div>
+  <div class="dice-actions">
+    <button class="btn-primary" onclick="rollCurrentTable()">ROLL TABLE</button>
+    <button class="btn-secondary" onclick="openEditTableModal()">Edit</button>
+  </div>
+  <div class="table-roll-result" id="table-roll-result">
+    <div class="empty-state">Tap Roll Table to get a result</div>
+  </div>
+  <div class="section-header" style="margin-top:16px">
+    <span class="section-title">ENTRIES (<span id="entry-count">0</span>)</span>
+    <button class="btn-small" onclick="exportTable()">Export</button>
+  </div>
+  <div class="table-entries-list" id="table-entries-list"></div>
+</div>
+
+<!-- SCREEN: BACKUP -->
+<div class="screen" id="screen-backup">
+  <div class="page-title">💾 Backup & Restore</div>
+
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px;">
+    <div style="font-family:var(--font-display);font-size:13px;letter-spacing:0.08em;color:var(--text2);margin-bottom:8px;">YOUR DATA</div>
+    <div id="backup-stats" style="font-size:15px;color:var(--text);line-height:1.8;"></div>
+  </div>
+
+  <div style="margin-bottom:12px;">
+    <div style="font-family:var(--font-display);font-size:13px;letter-spacing:0.08em;color:var(--text2);margin-bottom:10px;">BACKUP</div>
+    <button class="btn-primary" style="width:100%;margin-bottom:10px" onclick="backupToFile()">📥 Save Backup to Files</button>
+    <button class="btn-secondary" style="width:100%" onclick="backupToClipboard()">📋 Copy Backup to Clipboard</button>
+  </div>
+
+  <div style="margin-top:20px;">
+    <div style="font-family:var(--font-display);font-size:13px;letter-spacing:0.08em;color:var(--text2);margin-bottom:10px;">RESTORE</div>
+    <div style="font-size:14px;color:var(--text2);font-style:italic;margin-bottom:12px;">Paste a previously exported backup below and tap Restore. This will replace all current data.</div>
+    <textarea class="form-textarea" id="restore-input" placeholder="Paste backup JSON here..." style="margin-bottom:10px;min-height:120px"></textarea>
+    <button class="btn-primary" style="width:100%;background:var(--red);color:#fff;" onclick="restoreFromText()">⚠ Restore from Backup</button>
+  </div>
+</div>
+
+<!-- SCREEN: MAP -->
+<div class="map-screen" id="screen-map">
+  <div class="map-topbar">
+    <div class="map-title" id="map-current-name">New Map</div>
+    <button class="map-btn" onclick="openMapListModal()">Maps</button>
+    <button class="map-btn" onclick="newMap()">+ New</button>
+    <button class="map-btn" onclick="clearMapConfirm()">Clear</button>
+  </div>
+
+  <div class="map-canvas-wrap" id="map-canvas-wrap">
+    <canvas id="map-canvas"></canvas>
+  </div>
+
+  <div class="map-toolbar" id="map-toolbar">
+    <button class="tool-btn active" id="tool-floor" onclick="selectTool('floor',this)">
+      <span>⬜</span><span class="tool-label">Floor</span>
+    </button>
+    <button class="tool-btn" id="tool-wall" onclick="selectTool('wall',this)">
+      <span>🔲</span><span class="tool-label">Wall</span>
+    </button>
+    <button class="tool-btn" id="tool-door" onclick="selectTool('door',this)">
+      <span>🚪</span><span class="tool-label">Door</span>
+    </button>
+    <button class="tool-btn" id="tool-secret" onclick="selectTool('secret',this)">
+      <span>🔒</span><span class="tool-label">Secret</span>
+    </button>
+    <button class="tool-btn" id="tool-stairup" onclick="selectTool('stairup',this)">
+      <span>⬆️</span><span class="tool-label">Up</span>
+    </button>
+    <button class="tool-btn" id="tool-stairdown" onclick="selectTool('stairdown',this)">
+      <span>⬇️</span><span class="tool-label">Down</span>
+    </button>
+    <button class="tool-btn" id="tool-pillar" onclick="selectTool('pillar',this)">
+      <span>🔵</span><span class="tool-label">Pillar</span>
+    </button>
+    <button class="tool-btn" id="tool-water" onclick="selectTool('water',this)">
+      <span>🟦</span><span class="tool-label">Water</span>
+    </button>
+    <button class="tool-btn" id="tool-pit" onclick="selectTool('pit',this)">
+      <span>🕳</span><span class="tool-label">Pit</span>
+    </button>
+    <button class="tool-btn" id="tool-tri" onclick="selectTool('tri',this)">
+      <span>◺</span><span class="tool-label">Half</span>
+    </button>
+    <button class="tool-btn" id="tool-qtr" onclick="selectTool('qtr',this)">
+      <span>◿</span><span class="tool-label">Qtr</span>
+    </button>
+    <button class="tool-btn" id="tool-char-red" onclick="selectTool('char-red',this)">
+      <span>🔴</span><span class="tool-label">PC</span>
+    </button>
+    <button class="tool-btn" id="tool-char-blue" onclick="selectTool('char-blue',this)">
+      <span>🔵</span><span class="tool-label">NPC</span>
+    </button>
+    <button class="tool-btn" id="tool-char-green" onclick="selectTool('char-green',this)">
+      <span>🟢</span><span class="tool-label">Ally</span>
+    </button>
+    <button class="tool-btn" id="tool-char-purple" onclick="selectTool('char-purple',this)">
+      <span>🟣</span><span class="tool-label">Enemy</span>
+    </button>
+    <button class="tool-btn" id="tool-label" onclick="selectTool('label',this)">
+      <span>🔤</span><span class="tool-label">Label</span>
+    </button>
+    <button class="tool-btn" onclick="rotateSelectedLabel(-90)" title="Rotate label left">
+      <span>↺</span><span class="tool-label">Rot ←</span>
+    </button>
+    <button class="tool-btn" onclick="rotateSelectedLabel(90)" title="Rotate label right">
+      <span>↻</span><span class="tool-label">Rot →</span>
+    </button>
+    <button class="tool-btn" id="tool-move" onclick="selectTool('move',this)">
+      <span>✋</span><span class="tool-label">Move</span>
+    </button>
+    <button class="tool-btn" id="tool-erase" onclick="selectTool('erase',this)">
+      <span>🧹</span><span class="tool-label">Erase</span>
+    </button>
+  </div>
+</div>
+
+<!-- MODAL: MAP LIST -->
+<div class="modal-overlay" id="modal-map-list">
+  <div class="modal">
+    <div class="modal-title">My Maps</div>
+    <div id="map-list-items" style="margin-bottom:16px;max-height:300px;overflow-y:auto;"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modal-map-list')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: MAP LABEL -->
+<div class="modal-overlay" id="modal-map-label">
+  <div class="modal">
+    <div class="modal-title">Add Label</div>
+    <div class="form-group">
+      <label class="form-label">LABEL TEXT</label>
+      <input class="form-input" id="map-label-input" placeholder="e.g. Great Hall, Entry Room" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modal-map-label')">Cancel</button>
+      <button class="btn-confirm" onclick="confirmLabel()">Place</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: MAP NAME -->
+<div class="modal-overlay" id="modal-map-name">
+  <div class="modal">
+    <div class="modal-title">Name This Map</div>
+    <div class="form-group">
+      <label class="form-label">MAP NAME</label>
+      <input class="form-input" id="map-name-input" placeholder="e.g. Dungeon Level 1" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modal-map-name')">Cancel</button>
+      <button class="btn-confirm" onclick="confirmMapName()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <button class="nav-btn active" onclick="showScreen('dice', this)">
+    <span class="icon">🎲</span><span>Dice</span>
+  </button>
+  <button class="nav-btn" onclick="showScreen('tables', this)">
+    <span class="icon">📜</span><span>Tables</span>
+  </button>
+  <button class="nav-btn" onclick="showScreen('map', this)">
+    <span class="icon">🗺</span><span>Map</span>
+  </button>
+  <button class="nav-btn" onclick="showScreen('backup', this)">
+    <span class="icon">💾</span><span>Backup</span>
+  </button>
+</nav>
+
+<!-- MODAL: FOLDER -->
+<div class="modal-overlay" id="modal-folder">
+  <div class="modal">
+    <div class="modal-title">New Folder</div>
+    <div class="form-group">
+      <label class="form-label">FOLDER NAME</label>
+      <input class="form-input" id="folder-name-input" placeholder="e.g. Mythic, Combat, NPCs" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modal-folder')">Cancel</button>
+      <button class="btn-confirm" onclick="createFolder()">Create</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: TABLE -->
+<div class="modal-overlay" id="modal-table">
+  <div class="modal">
+    <div class="modal-title" id="table-modal-title">New Table</div>
+    <div class="form-group">
+      <label class="form-label">TABLE NAME</label>
+      <input class="form-input" id="table-name-input" placeholder="e.g. Random Event" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">FOLDER</label>
+      <select class="form-select" id="table-folder-select"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">ENTRIES (one per line)</label>
+      <textarea class="form-textarea" id="table-entries-input" placeholder="Entry one&#10;Entry two&#10;Entry three"></textarea>
+      <div class="form-hint">Use [d6], [d20] etc. in entries to auto-roll inline dice.</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">LINKED TABLE (auto-rolls after this one)</label>
+      <select class="form-select" id="table-link-select"></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modal-table')">Cancel</button>
+      <button class="btn-confirm" id="table-modal-confirm" onclick="saveTable()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ENTRY LINK -->
+<div class="modal-overlay" id="modal-entry-link">
+  <div class="modal">
+    <div class="modal-title">Link Entry</div>
+    <div style="font-size:15px;color:var(--text2);margin-bottom:16px;font-style:italic;" id="entry-link-text"></div>
+    <div class="form-group">
+      <label class="form-label">WHEN THIS ROLLS, ALSO ROLL ON...</label>
+      <select class="form-select" id="entry-link-select"></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modal-entry-link')">Cancel</button>
+      <button class="btn-confirm" onclick="saveEntryLink()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STATE ────────────────────────────────────────────────────────────────────
+let selectedDice = {};
+let data = loadData();
+let currentTableId = null;
+let editingTableId = null;
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem('rpgToolboxData');
+    return raw ? JSON.parse(raw) : { folders: [], tables: [] };
+  } catch(e) { return { folders: [], tables: [] }; }
+}
+
+function saveData() {
+  localStorage.setItem('rpgToolboxData', JSON.stringify(data));
+}
+
+// ── NAVIGATION ───────────────────────────────────────────────────────────────
+function showScreen(name, btn) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  // Map screen is fixed-position, not in .screen list
+  document.getElementById('screen-map').classList.remove('active');
+  if (name === 'map') {
+    document.getElementById('screen-map').classList.add('active');
+    setTimeout(() => { initMapCanvas(); }, 50);
+  } else {
+    document.getElementById('screen-' + name).classList.add('active');
+  }
+  if (btn) btn.classList.add('active');
+  if (name === 'tables') renderFolders();
+  if (name === 'backup') renderBackupStats();
+}
+
+function showTablesList() {
+  document.getElementById('screen-table-detail').classList.remove('active');
+  document.getElementById('screen-tables').classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.nav-btn')[1].classList.add('active');
+  renderFolders();
+}
+
+function openTableDetail(tableId) {
+  currentTableId = tableId;
+  const table = data.tables.find(t => t.id === tableId);
+  if (!table) return;
+  document.getElementById('detail-title').textContent = table.name;
+  document.getElementById('entry-count').textContent = table.entries.length;
+  document.getElementById('screen-tables').classList.remove('active');
+  document.getElementById('screen-table-detail').classList.add('active');
+  document.getElementById('table-roll-result').innerHTML = '<div class="empty-state">Tap Roll Table to get a result</div>';
+  renderTableEntries(table);
+}
+
+// ── DICE ─────────────────────────────────────────────────────────────────────
+function selectDie(btn) {
+  const sides = parseInt(btn.dataset.sides);
+  selectedDice[sides] = (selectedDice[sides] || 0) + 1;
+  let countEl = btn.querySelector('.die-count');
+  if (!countEl) {
+    countEl = document.createElement('span');
+    countEl.className = 'die-count';
+    btn.appendChild(countEl);
+  }
+  countEl.textContent = selectedDice[sides];
+  btn.classList.add('selected');
+}
+
+function clearDice() {
+  selectedDice = {};
+  document.querySelectorAll('.die-btn').forEach(btn => {
+    btn.classList.remove('selected');
+    const c = btn.querySelector('.die-count');
+    if (c) c.remove();
+  });
+  document.getElementById('results-list').innerHTML = '<div class="empty-state">Select dice above and tap Roll</div>';
+}
+
+function rollDice() {
+  const keys = Object.keys(selectedDice);
+  if (!keys.length) { showToast('Select some dice first'); return; }
+  const list = document.getElementById('results-list');
+  list.innerHTML = '';
+  keys.forEach(sides => {
+    for (let i = 0; i < selectedDice[sides]; i++) {
+      const roll = Math.floor(Math.random() * parseInt(sides)) + 1;
+      const chip = document.createElement('div');
+      chip.className = 'result-chip';
+      chip.innerHTML = `<span class="result-die-label">d${sides}</span><span class="result-value">${roll}</span>`;
+      list.appendChild(chip);
+    }
+  });
+}
+
+// ── FOLDERS ──────────────────────────────────────────────────────────────────
+function openNewFolderModal() {
+  document.getElementById('folder-name-input').value = '';
+  openModal('modal-folder');
+}
+
+function createFolder() {
+  const name = document.getElementById('folder-name-input').value.trim();
+  if (!name) { showToast('Enter a folder name'); return; }
+  data.folders.push({ id: Date.now().toString(), name });
+  saveData();
+  closeModal('modal-folder');
+  renderFolders();
+  showToast('Folder created');
+}
+
+function deleteFolder(folderId) {
+  if (!confirm('Delete folder? Tables will move to General.')) return;
+  data.folders = data.folders.filter(f => f.id !== folderId);
+  data.tables.forEach(t => { if (t.folderId === folderId) t.folderId = ''; });
+  saveData();
+  renderFolders();
+}
+
+function renderFolders() {
+  const container = document.getElementById('folder-list');
+  container.innerHTML = '';
+  const loose = data.tables.filter(t => !t.folderId);
+  if (loose.length > 0 || data.folders.length === 0) {
+    container.appendChild(makeFolderSection('', 'General', loose));
+  }
+  data.folders.forEach(f => {
+    container.appendChild(makeFolderSection(f.id, f.name, data.tables.filter(t => t.folderId === f.id)));
+  });
+}
+
+function makeFolderSection(folderId, folderName, tables) {
+  const item = document.createElement('div');
+  item.className = 'folder-item';
+  const header = document.createElement('div');
+  header.className = 'folder-header';
+  header.innerHTML = `
+    <span class="folder-icon">📁</span>
+    <span class="folder-name">${folderName}</span>
+    ${folderId ? `<button class="folder-delete-btn" onclick="deleteFolder('${folderId}');event.stopPropagation()">🗑</button>` : ''}
+    <span class="folder-toggle">▶</span>
+  `;
+  const contents = document.createElement('div');
+  contents.className = 'folder-contents';
+  if (!tables.length) {
+    contents.innerHTML = '<div class="no-tables">No tables yet</div>';
+  } else {
+    tables.forEach(table => {
+      const row = document.createElement('div');
+      row.className = 'table-item';
+      row.innerHTML = `
+        <span class="table-name">${table.name}</span>
+        <span class="table-count">${table.entries.length}</span>
+        <button class="icon-btn" onclick="deleteTable('${table.id}');event.stopPropagation()">🗑</button>
+      `;
+      row.addEventListener('click', () => openTableDetail(table.id));
+      contents.appendChild(row);
+    });
+  }
+  header.addEventListener('click', () => {
+    contents.classList.toggle('open');
+    header.querySelector('.folder-toggle').classList.toggle('open');
+  });
+  contents.classList.add('open');
+  header.querySelector('.folder-toggle').classList.add('open');
+  item.appendChild(header);
+  item.appendChild(contents);
+  return item;
+}
+
+// ── TABLES ───────────────────────────────────────────────────────────────────
+function openNewTableModal() {
+  editingTableId = null;
+  document.getElementById('table-modal-title').textContent = 'New Table';
+  document.getElementById('table-modal-confirm').textContent = 'Create';
+  document.getElementById('table-name-input').value = '';
+  document.getElementById('table-entries-input').value = '';
+  populateFolderSelect('');
+  populateLinkSelect('');
+  openModal('modal-table');
+}
+
+function openEditTableModal() {
+  const table = data.tables.find(t => t.id === currentTableId);
+  if (!table) return;
+  editingTableId = currentTableId;
+  document.getElementById('table-modal-title').textContent = 'Edit Table';
+  document.getElementById('table-modal-confirm').textContent = 'Save';
+  document.getElementById('table-name-input').value = table.name;
+  document.getElementById('table-entries-input').value = table.entries.map(e => e.text).join('\n');
+  populateFolderSelect(table.folderId || '');
+  populateLinkSelect(table.linkedTableId || '');
+  openModal('modal-table');
+}
+
+function populateFolderSelect(selected) {
+  const sel = document.getElementById('table-folder-select');
+  sel.innerHTML = '<option value="">— No Folder —</option>';
+  data.folders.forEach(f => {
+    const opt = document.createElement('option');
+    opt.value = f.id; opt.textContent = f.name;
+    if (f.id === selected) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function populateLinkSelect(selected) {
+  const sel = document.getElementById('table-link-select');
+  sel.innerHTML = '<option value="">— None —</option>';
+  data.tables.forEach(t => {
+    if (t.id === editingTableId) return;
+    const opt = document.createElement('option');
+    opt.value = t.id; opt.textContent = t.name;
+    if (t.id === selected) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function saveTable() {
+  const name = document.getElementById('table-name-input').value.trim();
+  if (!name) { showToast('Enter a table name'); return; }
+  const rawEntries = document.getElementById('table-entries-input').value
+    .split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  if (!rawEntries.length) { showToast('Add at least one entry'); return; }
+  const entries = rawEntries.map(line => {
+    const parts = line.split('>>>');
+    return { text: parts[0].trim(), link: parts[1] ? parts[1].trim() : null };
+  });
+  const folderId = document.getElementById('table-folder-select').value;
+  const linkedTableId = document.getElementById('table-link-select').value;
+  if (editingTableId) {
+    const idx = data.tables.findIndex(t => t.id === editingTableId);
+    data.tables[idx] = { ...data.tables[idx], name, entries, folderId, linkedTableId };
+    currentTableId = editingTableId;
+  } else {
+    const t = { id: Date.now().toString(), name, entries, folderId, linkedTableId };
+    data.tables.push(t);
+    currentTableId = t.id;
+  }
+  saveData();
+  closeModal('modal-table');
+  showToast(editingTableId ? 'Table updated' : 'Table created');
+  openTableDetail(currentTableId);
+}
+
+function deleteTable(tableId) {
+  if (!confirm('Delete this table?')) return;
+  data.tables = data.tables.filter(t => t.id !== tableId);
+  saveData();
+  renderFolders();
+  showToast('Table deleted');
+}
+
+function renderTableEntries(table) {
+  const container = document.getElementById('table-entries-list');
+  container.innerHTML = '';
+  table.entries.forEach((entry, i) => {
+    const linkedName = entry.link ? (data.tables.find(t => t.id === entry.link)?.name || '') : '';
+    const row = document.createElement('div');
+    row.className = 'entry-row';
+    row.style.cursor = 'pointer';
+    row.innerHTML = `
+      <span class="entry-num">${i + 1}</span>
+      <span class="entry-text">${entry.text}</span>
+      <span class="entry-link">${linkedName ? '→ ' + linkedName : '<span style="color:var(--border);font-size:11px">link</span>'}</span>
+    `;
+    row.addEventListener('click', () => openEntryLinkModal(i));
+    container.appendChild(row);
+  });
+}
+
+function rollCurrentTable() {
+  const table = data.tables.find(t => t.id === currentTableId);
+  if (!table) return;
+  rollTable(table, document.getElementById('table-roll-result'), []);
+}
+
+function rollTable(table, container, chain) {
+  if (chain.length > 5) return;
+  const idx = Math.floor(Math.random() * table.entries.length);
+  const entry = table.entries[idx];
+  let text = entry.text.replace(/\[d(\d+)\]/gi, (_, s) => Math.floor(Math.random() * parseInt(s)) + 1);
+  chain.push({ table: table.name, result: text });
+  let html = '';
+  chain.forEach((c, i) => {
+    html += `<div class="roll-result-text">${c.result}</div>`;
+    if (i > 0) html += `<div class="roll-result-chain">from ${c.table}</div>`;
+  });
+  container.innerHTML = html;
+  const nextId = entry.link || table.linkedTableId;
+  if (nextId) {
+    const linked = data.tables.find(t => t.id === nextId);
+    if (linked) setTimeout(() => rollTable(linked, container, chain), 350);
+  }
+}
+
+function exportTable() {
+  const table = data.tables.find(t => t.id === currentTableId);
+  if (!table) return;
+  const text = table.entries.map(e => e.text).join('\n');
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard'));
+  } else {
+    prompt('Copy your entries:', text);
+  }
+}
+
+// ── ENTRY LINKING ─────────────────────────────────────────────────────────────
+let editingEntryIndex = null;
+
+function openEntryLinkModal(entryIndex) {
+  const table = data.tables.find(t => t.id === currentTableId);
+  if (!table) return;
+  editingEntryIndex = entryIndex;
+  const entry = table.entries[entryIndex];
+  document.getElementById('entry-link-text').textContent = '"' + entry.text + '"';
+  const sel = document.getElementById('entry-link-select');
+  sel.innerHTML = '<option value="">— None —</option>';
+  data.tables.forEach(t => {
+    if (t.id === currentTableId) return;
+    const opt = document.createElement('option');
+    opt.value = t.id;
+    opt.textContent = t.name;
+    if (t.id === entry.link) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  openModal('modal-entry-link');
+}
+
+function saveEntryLink() {
+  const table = data.tables.find(t => t.id === currentTableId);
+  if (!table || editingEntryIndex === null) return;
+  table.entries[editingEntryIndex].link = document.getElementById('entry-link-select').value || null;
+  saveData();
+  closeModal('modal-entry-link');
+  renderTableEntries(table);
+  showToast('Entry link saved');
+}
+
+// ── MODALS ───────────────────────────────────────────────────────────────────
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+});
+
+// ── TOAST ────────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ── BACKUP & RESTORE ─────────────────────────────────────────────────────────
+function renderBackupStats() {
+  const el = document.getElementById('backup-stats');
+  const folderCount = data.folders.length;
+  const tableCount = data.tables.length;
+  const entryCount = data.tables.reduce((sum, t) => sum + t.entries.length, 0);
+  const mapCount = loadMaps().length;
+  el.innerHTML = `
+    ${folderCount} folder${folderCount !== 1 ? 's' : ''}<br>
+    ${tableCount} table${tableCount !== 1 ? 's' : ''}<br>
+    ${entryCount} total entries<br>
+    ${mapCount} map${mapCount !== 1 ? 's' : ''}
+  `;
+}
+
+function getBackupJSON() {
+  return JSON.stringify({ version: 1, exported: new Date().toISOString(), ...data, maps: loadMaps() }, null, 2);
+}
+
+function backupToClipboard() {
+  const json = getBackupJSON();
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(json).then(() => showToast('Backup copied to clipboard'));
+  } else {
+    prompt('Copy this backup:', json);
+  }
+}
+
+function backupToFile() {
+  const json = getBackupJSON();
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const date = new Date().toISOString().split('T')[0];
+  a.href = url;
+  a.download = `rpg-toolbox-backup-${date}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Backup saved');
+}
+
+function restoreFromText() {
+  const text = document.getElementById('restore-input').value.trim();
+  if (!text) { showToast('Paste a backup first'); return; }
+  try {
+    const parsed = JSON.parse(text);
+    if (!parsed.folders || !parsed.tables) throw new Error('Invalid backup');
+    if (!confirm('This will replace ALL your current data. Are you sure?')) return;
+    data = { folders: parsed.folders, tables: parsed.tables };
+    saveData();
+    if (parsed.maps) saveMaps(parsed.maps);
+    document.getElementById('restore-input').value = '';
+    renderBackupStats();
+    showToast('Restore successful');
+  } catch(e) {
+    showToast('Invalid backup file');
+  }
+}
+
+// ── MAP ───────────────────────────────────────────────────────────────────────
+const GRID = 500;
+const CELL = 20;
+let mapState = {
+  cells: {},    // "x,y" -> { type, wallN, wallS, wallE, wallW }
+  labels: [],   // [{x, y, text, rotation}]  rotation in degrees 0/90/180/270
+  markers: [],  // [{x, y, color}]
+};
+let currentMapId = null;
+let currentTool = 'floor';
+let mapScale = 1;
+let mapOffsetX = 0;
+let mapOffsetY = 0;
+let isPainting = false;
+let pendingLabelCell = null;
+let movingMarkerIdx = null;
+let selectedLabelIdx = null;
+
+// Wall cycle order per cell: each tap adds next wall side, then all 4, then clears walls
+const WALL_CYCLE = ['N','E','S','W','ALL','NONE'];
+
+const FLOOR_COLOR = '#c8b89a';
+
+const CELL_DRAW = {
+  floor:      { fill: '#c8b89a' },
+  wall:       { fill: '#2a2420' },
+  water:      { fill: '#3a6a9a' },
+  pit:        { fill: '#1a1410' },
+  door:       { fill: '#c8b89a' },
+  secret:     { fill: '#c8b89a' },  stairup:    { fill: '#c8b89a', symbol: '↑',  sColor: '#2a6a2a' },
+  stairdown:  { fill: '#c8b89a', symbol: '↓',  sColor: '#6a2a2a' },
+  pillar:     { fill: '#c8b89a', symbol: '●',  sColor: '#555' },
+  // Triangles: half and quarter, 4 orientations each
+  'tri-nw':   { triangle: [[0,0],[1,0],[0,1]],   fill: '#c8b89a' },
+  'tri-ne':   { triangle: [[1,0],[0,0],[1,1]],   fill: '#c8b89a' },  // actually NE
+  'tri-se':   { triangle: [[1,1],[0,1],[1,0]],   fill: '#c8b89a' },
+  'tri-sw':   { triangle: [[0,1],[1,1],[0,0]],   fill: '#c8b89a' },
+  'qtr-nw':   { triangle: [[0,0],[0.5,0],[0,0.5]], fill: '#c8b89a' },
+  'qtr-ne':   { triangle: [[1,0],[0.5,0],[1,0.5]], fill: '#c8b89a' },
+  'qtr-se':   { triangle: [[1,1],[0.5,1],[1,0.5]], fill: '#c8b89a' },
+  'qtr-sw':   { triangle: [[0,1],[0.5,1],[0,0.5]], fill: '#c8b89a' },
+};
+
+const MARKER_COLORS = {
+  'char-red':    '#e74c3c',
+  'char-blue':   '#2980b9',
+  'char-green':  '#27ae60',
+  'char-purple': '#8e44ad',
+};
+
+// Triangle tool cycles through orientations on successive taps
+const TRI_CYCLE  = ['tri-nw','tri-ne','tri-se','tri-sw'];
+const QTR_CYCLE  = ['qtr-nw','qtr-ne','qtr-se','qtr-sw'];
+
+function getCanvas() { return document.getElementById('map-canvas'); }
+function getCtx()    { return getCanvas().getContext('2d'); }
+
+function initMapCanvas() {
+  const wrap = document.getElementById('map-canvas-wrap');
+  const canvas = getCanvas();
+  canvas.width  = wrap.clientWidth;
+  canvas.height = wrap.clientHeight;
+  mapOffsetX = (canvas.width  - GRID * CELL * mapScale) / 2;
+  mapOffsetY = (canvas.height - GRID * CELL * mapScale) / 2;
+  drawMap();
+}
+
+function drawMap() {
+  const canvas = getCanvas();
+  const ctx = getCtx();
+  const cs = CELL * mapScale;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#0f0e0d';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Draw cells
+  for (const key in mapState.cells) {
+    const [x, y] = key.split(',').map(Number);
+    const cell = mapState.cells[key];
+    const type = typeof cell === 'string' ? cell : cell.type;
+    const px = mapOffsetX + x * cs;
+    const py = mapOffsetY + y * cs;
+    if (px + cs < 0 || py + cs < 0 || px > canvas.width || py > canvas.height) continue;
+
+    const def = CELL_DRAW[type];
+    if (!def) continue;
+
+    if (def.triangle) {
+      ctx.fillStyle = def.fill;
+      ctx.beginPath();
+      def.triangle.forEach(([tx, ty], i) => {
+        if (i === 0) ctx.moveTo(px + tx * cs, py + ty * cs);
+        else ctx.lineTo(px + tx * cs, py + ty * cs);
+      });
+      ctx.closePath();
+      ctx.fill();
+    } else {
+      ctx.fillStyle = def.fill;
+      ctx.fillRect(px, py, cs, cs);
+      if (def.symbol) {
+        ctx.fillStyle = def.sColor;
+        ctx.font = `bold ${Math.max(8, cs * 0.6)}px Georgia`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(def.symbol, px + cs/2, py + cs/2);
+      }
+      // Door — draw directional symbol based on doorDir
+      if (type === 'door' || type === 'secret') {
+        const dir = (typeof cell === 'object' && cell.doorDir) ? cell.doorDir : 'N';
+        const hw = Math.max(2, cs * 0.12); // wall thickness
+        const gap = cs * 0.25;             // gap width each side of door
+        const mid = cs / 2;
+        ctx.strokeStyle = type === 'secret' ? '#8a5a2a' : '#222';
+        ctx.lineWidth = hw;
+        ctx.lineCap = 'square';
+
+        // Draw the wall line with a gap in the middle for the door opening
+        if (dir === 'N' || dir === 'S') {
+          const wy = dir === 'N' ? py : py + cs;
+          // Left segment
+          ctx.beginPath(); ctx.moveTo(px, wy); ctx.lineTo(px + mid - gap, wy); ctx.stroke();
+          // Right segment
+          ctx.beginPath(); ctx.moveTo(px + mid + gap, wy); ctx.lineTo(px + cs, wy); ctx.stroke();
+          // Door arc/swing indicator
+          ctx.strokeStyle = type === 'secret' ? '#8a5a2a' : '#555';
+          ctx.lineWidth = Math.max(1, cs * 0.06);
+          ctx.beginPath();
+          ctx.arc(px + mid, wy, gap, 0, Math.PI, dir === 'N');
+          ctx.stroke();
+        } else {
+          const wx = dir === 'W' ? px : px + cs;
+          // Top segment
+          ctx.beginPath(); ctx.moveTo(wx, py); ctx.lineTo(wx, py + mid - gap); ctx.stroke();
+          // Bottom segment
+          ctx.beginPath(); ctx.moveTo(wx, py + mid + gap); ctx.lineTo(wx, py + cs); ctx.stroke();
+          // Door arc/swing indicator
+          ctx.strokeStyle = type === 'secret' ? '#8a5a2a' : '#555';
+          ctx.lineWidth = Math.max(1, cs * 0.06);
+          ctx.beginPath();
+          ctx.arc(wx, py + mid, gap, Math.PI * 1.5, Math.PI * 0.5, dir === 'W');
+          ctx.stroke();
+        }
+      }
+    }
+
+    // Draw wall lines on cell edges
+    const walls = typeof cell === 'object' ? cell : {};
+    const wallW = Math.max(2, cs * 0.12);
+    ctx.strokeStyle = '#1a1410';
+    ctx.lineWidth = wallW;
+    ctx.lineCap = 'square';
+    if (walls.wallN || walls.wallALL) { ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px + cs, py); ctx.stroke(); }
+    if (walls.wallS || walls.wallALL) { ctx.beginPath(); ctx.moveTo(px, py + cs); ctx.lineTo(px + cs, py + cs); ctx.stroke(); }
+    if (walls.wallW || walls.wallALL) { ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px, py + cs); ctx.stroke(); }
+    if (walls.wallE || walls.wallALL) { ctx.beginPath(); ctx.moveTo(px + cs, py); ctx.lineTo(px + cs, py + cs); ctx.stroke(); }
+  }
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(80,70,60,0.35)';
+  ctx.lineWidth = 0.5;
+  ctx.lineCap = 'butt';
+  const startX = Math.max(0, Math.floor(-mapOffsetX / cs));
+  const startY = Math.max(0, Math.floor(-mapOffsetY / cs));
+  const endX = Math.min(GRID, startX + Math.ceil(canvas.width  / cs) + 1);
+  const endY = Math.min(GRID, startY + Math.ceil(canvas.height / cs) + 1);
+  for (let x = startX; x <= endX; x++) {
+    const px = mapOffsetX + x * cs;
+    ctx.beginPath(); ctx.moveTo(px, mapOffsetY + startY * cs); ctx.lineTo(px, mapOffsetY + endY * cs); ctx.stroke();
+  }
+  for (let y = startY; y <= endY; y++) {
+    const py = mapOffsetY + y * cs;
+    ctx.beginPath(); ctx.moveTo(mapOffsetX + startX * cs, py); ctx.lineTo(mapOffsetX + endX * cs, py); ctx.stroke();
+  }
+
+  // Labels
+  mapState.labels.forEach((lbl, idx) => {
+    const cx = mapOffsetX + lbl.x * cs + cs / 2;
+    const cy = mapOffsetY + lbl.y * cs + cs / 2;
+    if (cx < -200 || cy < -200 || cx > canvas.width + 200 || cy > canvas.height + 200) return;
+    const fs = Math.max(9, cs * 0.55);
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(((lbl.rotation || 0) * Math.PI) / 180);
+    ctx.font = `bold ${fs}px Georgia`;
+    const tw = ctx.measureText(lbl.text).width;
+    // Selected highlight
+    if (idx === selectedLabelIdx) {
+      ctx.strokeStyle = '#e8c97a';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(-tw/2 - 4, -fs/2 - 3, tw + 8, fs + 6);
+    }
+    ctx.fillStyle = 'rgba(15,14,13,0.8)';
+    ctx.fillRect(-tw/2 - 2, -fs/2 - 1, tw + 4, fs + 2);
+    ctx.fillStyle = idx === selectedLabelIdx ? '#fff' : '#e8c97a';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(lbl.text, 0, 0);
+    ctx.restore();
+  });
+
+  // Markers
+  mapState.markers.forEach((m, idx) => {
+    const px = mapOffsetX + m.x * cs + cs/2;
+    const py = mapOffsetY + m.y * cs + cs/2;
+    if (px < -cs || py < -cs || px > canvas.width + cs || py > canvas.height + cs) return;
+    const r = Math.max(4, cs * 0.38);
+    ctx.beginPath(); ctx.arc(px, py, r, 0, Math.PI * 2);
+    ctx.fillStyle = m.color; ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = Math.max(1, cs * 0.06);
+    ctx.stroke();
+    if (idx === movingMarkerIdx) {
+      ctx.beginPath(); ctx.arc(px, py, r + 3, 0, Math.PI * 2);
+      ctx.strokeStyle = '#e8c97a'; ctx.lineWidth = 2; ctx.stroke();
+    }
+  });
+}
+
+function cellFromEvent(e) {
+  const canvas = getCanvas();
+  const rect = canvas.getBoundingClientRect();
+  const cs = CELL * mapScale;
+  let cx, cy;
+  if (e.touches) { cx = e.touches[0].clientX - rect.left; cy = e.touches[0].clientY - rect.top; }
+  else { cx = e.clientX - rect.left; cy = e.clientY - rect.top; }
+  const x = Math.floor((cx - mapOffsetX) / cs);
+  const y = Math.floor((cy - mapOffsetY) / cs);
+  return { x, y, valid: x >= 0 && x < GRID && y >= 0 && y < GRID, rawX: cx, rawY: cy };
+}
+
+function labelAtPoint(rawX, rawY) {
+  const cs = CELL * mapScale;
+  // Check labels in reverse order (top drawn last = visually on top)
+  for (let i = mapState.labels.length - 1; i >= 0; i--) {
+    const lbl = mapState.labels[i];
+    const cx = mapOffsetX + lbl.x * cs + cs/2;
+    const cy = mapOffsetY + lbl.y * cs + cs/2;
+    const dist = Math.hypot(rawX - cx, rawY - cy);
+    if (dist < cs * 1.5) return i;
+  }
+  return -1;
+}
+
+function applyTool(x, y, rawX, rawY) {
+  const key = `${x},${y}`;
+
+  if (currentTool === 'erase') {
+    delete mapState.cells[key];
+    // Check if erasing a label
+    const li = labelAtPoint(rawX, rawY);
+    if (li >= 0) { mapState.labels.splice(li, 1); selectedLabelIdx = null; }
+    mapState.markers = mapState.markers.filter(m => !(m.x === x && m.y === y));
+
+  } else if (currentTool === 'label') {
+    const li = labelAtPoint(rawX, rawY);
+    if (selectedLabelIdx !== null) {
+      // Already have a label selected — move it to new location
+      mapState.labels[selectedLabelIdx].x = x;
+      mapState.labels[selectedLabelIdx].y = y;
+      selectedLabelIdx = null;
+      saveMapState(); drawMap(); return;
+    }
+    if (li >= 0) {
+      // Select existing label
+      selectedLabelIdx = li;
+      showToast('Label selected — double-tap new location to move, or use ↺↻ to rotate');
+      drawMap(); return;
+    }
+    // No selection, no existing label — create new
+    selectedLabelIdx = null;
+    pendingLabelCell = { x, y };
+    document.getElementById('map-label-input').value = '';
+    openModal('modal-map-label');
+    return;
+
+  } else if (currentTool === 'door' || currentTool === 'secret') {
+    const existing = mapState.cells[key];
+    const curDir = (existing && typeof existing === 'object' && existing.type === currentTool) ? existing.doorDir : null;
+    const DOOR_CYCLE = ['N','E','S','W'];
+    const nextDir = curDir ? DOOR_CYCLE[(DOOR_CYCLE.indexOf(curDir) + 1) % 4] : 'N';
+    mapState.cells[key] = { type: currentTool, doorDir: nextDir };
+
+  } else if (currentTool === 'wall') {
+    // Cycle wall sides on existing floor cell
+    const existing = mapState.cells[key];
+    const base = existing ? (typeof existing === 'object' ? existing : { type: existing }) : { type: 'floor' };
+    // Figure out current wall state
+    const hasN = base.wallN || base.wallALL;
+    const hasE = base.wallE || base.wallALL;
+    const hasS = base.wallS || base.wallALL;
+    const hasW = base.wallW || base.wallALL;
+    const count = [hasN,hasE,hasS,hasW].filter(Boolean).length;
+    const isAll = base.wallALL;
+
+    let newWalls = {};
+    if (!hasN && !hasE && !hasS && !hasW) { newWalls = { wallN: true }; }
+    else if (hasN && !hasE && !hasS && !hasW) { newWalls = { wallE: true }; }
+    else if (hasE && !hasN && !hasS && !hasW) { newWalls = { wallS: true }; }
+    else if (hasS && !hasN && !hasE && !hasW) { newWalls = { wallW: true }; }
+    else if (hasW && !hasN && !hasE && !hasS) { newWalls = { wallALL: true }; }
+    else { newWalls = {}; } // clear all walls
+
+    mapState.cells[key] = { type: base.type || 'floor', ...newWalls };
+
+  } else if (currentTool === 'tri') {
+    // Cycle triangle orientations
+    const existing = mapState.cells[key];
+    const curType = existing ? (typeof existing === 'object' ? existing.type : existing) : '';
+    const idx = TRI_CYCLE.indexOf(curType);
+    const nextType = TRI_CYCLE[(idx + 1) % TRI_CYCLE.length];
+    mapState.cells[key] = { type: nextType };
+
+  } else if (currentTool === 'qtr') {
+    const existing = mapState.cells[key];
+    const curType = existing ? (typeof existing === 'object' ? existing.type : existing) : '';
+    const idx = QTR_CYCLE.indexOf(curType);
+    const nextType = QTR_CYCLE[(idx + 1) % QTR_CYCLE.length];
+    mapState.cells[key] = { type: nextType };
+
+  } else if (currentTool.startsWith('char-')) {
+    if (movingMarkerIdx !== null) {
+      mapState.markers[movingMarkerIdx].x = x;
+      mapState.markers[movingMarkerIdx].y = y;
+      movingMarkerIdx = null;
+    } else {
+      const color = MARKER_COLORS[currentTool];
+      const existing = mapState.markers.findIndex(m => m.x === x && m.y === y && m.color === color);
+      if (existing >= 0) { movingMarkerIdx = existing; }
+      else { mapState.markers.push({ x, y, color }); }
+    }
+
+  } else if (currentTool === 'move') {
+    if (movingMarkerIdx !== null) {
+      mapState.markers[movingMarkerIdx].x = x;
+      mapState.markers[movingMarkerIdx].y = y;
+      movingMarkerIdx = null;
+    } else {
+      // Also allow moving labels
+      const li = labelAtPoint(rawX, rawY);
+      if (li >= 0) { selectedLabelIdx = li; movingMarkerIdx = -1; }
+      else {
+        const idx = mapState.markers.findIndex(m => m.x === x && m.y === y);
+        if (idx >= 0) movingMarkerIdx = idx;
+      }
+    }
+    saveMapState(); drawMap(); return;
+
+  } else {
+    // Standard fill tools
+    const existing = mapState.cells[key];
+    const walls = existing && typeof existing === 'object' ? 
+      { wallN: existing.wallN, wallS: existing.wallS, wallE: existing.wallE, wallW: existing.wallW, wallALL: existing.wallALL } : {};
+    mapState.cells[key] = { type: currentTool, ...walls };
+  }
+
+  saveMapState();
+  drawMap();
+}
+
+function showLabelControls(idx) {
+  // Show a quick toast with instructions
+  showToast('Double-tap to move • Use ↺ buttons to rotate');
+}
+
+function rotateSelectedLabel(deg) {
+  if (selectedLabelIdx === null || selectedLabelIdx >= mapState.labels.length) return;
+  const lbl = mapState.labels[selectedLabelIdx];
+  lbl.rotation = ((lbl.rotation || 0) + deg + 360) % 360;
+  saveMapState();
+  drawMap();
+}
+
+function confirmLabel() {
+  const text = document.getElementById('map-label-input').value.trim();
+  if (text && pendingLabelCell) {
+    mapState.labels = mapState.labels.filter(l => !(l.x === pendingLabelCell.x && l.y === pendingLabelCell.y));
+    mapState.labels.push({ x: pendingLabelCell.x, y: pendingLabelCell.y, text, rotation: 0 });
+    saveMapState(); drawMap();
+  }
+  pendingLabelCell = null;
+  closeModal('modal-map-label');
+}
+
+// ── TOUCH/MOUSE EVENTS ────────────────────────────────────────────────────────
+function setupMapEvents() {
+  const canvas = getCanvas();
+  let lastTouchDist = null;
+  let lastPanX = null, lastPanY = null;
+  let twoFingerMode = false;
+  let lastTapTime = 0;
+  let lastTapCell = null;
+
+  function onStart(e) {
+    if (e.touches && e.touches.length === 2) {
+      twoFingerMode = true;
+      lastTouchDist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      lastPanX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      lastPanY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      return;
+    }
+    twoFingerMode = false;
+    isPainting = false;
+
+    const cell = cellFromEvent(e);
+    const now = Date.now();
+    const sameCell = lastTapCell && lastTapCell.x === cell.x && lastTapCell.y === cell.y;
+
+    if (now - lastTapTime < 350 && sameCell) {
+      // Double tap — paint
+      isPainting = true;
+      if (cell.valid) applyTool(cell.x, cell.y, cell.rawX, cell.rawY);
+      lastTapTime = 0;
+      lastTapCell = null;
+    } else {
+      // Single tap — start pan
+      lastTapTime = now;
+      lastTapCell = cell;
+    }
+
+    if (e.touches) {
+      lastPanX = e.touches[0].clientX;
+      lastPanY = e.touches[0].clientY;
+    } else {
+      lastPanX = e.clientX;
+      lastPanY = e.clientY;
+    }
+  }
+
+  function onMove(e) {
+    e.preventDefault();
+    if (e.touches && e.touches.length === 2) {
+      twoFingerMode = true;
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      if (lastTouchDist) {
+        const ratio = dist / lastTouchDist;
+        const oldScale = mapScale;
+        mapScale = Math.min(4, Math.max(0.15, mapScale * ratio));
+        const rect = canvas.getBoundingClientRect();
+        const mx = midX - rect.left;
+        const my = midY - rect.top;
+        mapOffsetX = mx - (mx - mapOffsetX) * (mapScale / oldScale);
+        mapOffsetY = my - (my - mapOffsetY) * (mapScale / oldScale);
+      }
+      if (lastPanX !== null) {
+        mapOffsetX += midX - lastPanX;
+        mapOffsetY += midY - lastPanY;
+      }
+      lastTouchDist = dist;
+      lastPanX = midX; lastPanY = midY;
+      drawMap();
+      return;
+    }
+
+    // Single finger — pan always, paint only if double-tap mode active
+    const curX = e.touches ? e.touches[0].clientX : e.clientX;
+    const curY = e.touches ? e.touches[0].clientY : e.clientY;
+
+    if (lastPanX !== null && !isPainting) {
+      mapOffsetX += curX - lastPanX;
+      mapOffsetY += curY - lastPanY;
+      lastPanX = curX;
+      lastPanY = curY;
+      drawMap();
+      return;
+    }
+
+    if (isPainting) {
+      if (currentTool === 'move' || currentTool === 'label') return;
+      if (currentTool.startsWith('char-')) return;
+      const cell = cellFromEvent(e);
+      if (cell.valid) applyTool(cell.x, cell.y, cell.rawX, cell.rawY);
+    }
+
+    lastPanX = curX;
+    lastPanY = curY;
+  }
+
+  function onEnd(e) {
+    isPainting = false;
+    twoFingerMode = false;
+    lastTouchDist = null;
+    lastPanX = null; lastPanY = null;
+  }
+
+  canvas.addEventListener('touchstart', onStart, { passive: false });
+  canvas.addEventListener('touchmove',  onMove,  { passive: false });
+  canvas.addEventListener('touchend',   onEnd,   { passive: false });
+  canvas.addEventListener('mousedown',  onStart);
+  canvas.addEventListener('mousemove',  onMove);
+  canvas.addEventListener('mouseup',    onEnd);
+}
+
+// ── MAP TOOL SELECTION ────────────────────────────────────────────────────────
+function selectTool(tool, btn) {
+  currentTool = tool;
+  movingMarkerIdx = null;
+  document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ── MAP SAVE/LOAD ─────────────────────────────────────────────────────────────
+function saveMapState() {
+  if (!currentMapId) return;
+  const maps = loadMaps();
+  const idx = maps.findIndex(m => m.id === currentMapId);
+  if (idx >= 0) {
+    maps[idx].cells   = mapState.cells;
+    maps[idx].labels  = mapState.labels;
+    maps[idx].markers = mapState.markers;
+  }
+  localStorage.setItem('rpgToolboxMaps', JSON.stringify(maps));
+}
+
+function loadMaps() {
+  try {
+    const raw = localStorage.getItem('rpgToolboxMaps');
+    return raw ? JSON.parse(raw) : [];
+  } catch(e) { return []; }
+}
+
+function saveMaps(maps) {
+  localStorage.setItem('rpgToolboxMaps', JSON.stringify(maps));
+}
+
+function newMap() {
+  document.getElementById('map-name-input').value = '';
+  openModal('modal-map-name');
+}
+
+function confirmMapName() {
+  const name = document.getElementById('map-name-input').value.trim() || 'Untitled Map';
+  closeModal('modal-map-name');
+  const maps = loadMaps();
+  const newM = { id: Date.now().toString(), name, cells: {}, labels: [], markers: [] };
+  maps.push(newM);
+  saveMaps(maps);
+  loadMap(newM.id);
+}
+
+function loadMap(mapId) {
+  const maps = loadMaps();
+  const m = maps.find(x => x.id === mapId);
+  if (!m) return;
+  currentMapId = mapId;
+  mapState = { cells: m.cells || {}, labels: m.labels || [], markers: m.markers || [] };
+  document.getElementById('map-current-name').textContent = m.name;
+  closeModal('modal-map-list');
+  drawMap();
+}
+
+function openMapListModal() {
+  const maps = loadMaps();
+  const container = document.getElementById('map-list-items');
+  container.innerHTML = '';
+  if (!maps.length) {
+    container.innerHTML = '<div style="color:var(--text2);font-style:italic;padding:12px;text-align:center">No saved maps yet</div>';
+  } else {
+    maps.forEach(m => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;padding:12px;border-bottom:1px solid var(--border);gap:10px;cursor:pointer;';
+      row.innerHTML = `
+        <span style="flex:1;font-size:16px">${m.name}</span>
+        <button style="background:var(--red);border:none;border-radius:6px;color:#fff;font-size:12px;padding:4px 8px;cursor:pointer" onclick="deleteMap('${m.id}');event.stopPropagation()">🗑</button>
+      `;
+      row.addEventListener('click', () => loadMap(m.id));
+      container.appendChild(row);
+    });
+  }
+  openModal('modal-map-list');
+}
+
+function deleteMap(mapId) {
+  if (!confirm('Delete this map?')) return;
+  let maps = loadMaps();
+  maps = maps.filter(m => m.id !== mapId);
+  saveMaps(maps);
+  if (currentMapId === mapId) {
+    currentMapId = null;
+    mapState = { cells: {}, labels: [], markers: [] };
+    document.getElementById('map-current-name').textContent = 'New Map';
+    drawMap();
+  }
+  openMapListModal();
+}
+
+function clearMapConfirm() {
+  if (!confirm('Clear all cells on this map?')) return;
+  mapState.cells   = {};
+  mapState.labels  = [];
+  mapState.markers = [];
+  saveMapState();
+  drawMap();
+}
+
+function initMap() {
+  const maps = loadMaps();
+  if (maps.length > 0) {
+    loadMap(maps[maps.length - 1].id);
+  } else {
+    // Create default map
+    const newM = { id: Date.now().toString(), name: 'My First Map', cells: {}, labels: [], markers: [] };
+    saveMaps([newM]);
+    loadMap(newM.id);
+  }
+  setupMapEvents();
+}
+
+// ── SERVICE WORKER ───────────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+renderFolders();
+initMap();
+</script>
+</body>
+</html>
