@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rpg-toolbox-v1';
+const CACHE_NAME = 'rpg-toolbox-v8';
 const ASSETS = [
   './index.html',
   './manifest.json',
